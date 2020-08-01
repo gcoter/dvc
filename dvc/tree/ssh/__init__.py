@@ -90,6 +90,18 @@ class SSHTree(BaseTree):
             self.sock = paramiko.ProxyCommand(proxy_command)
         else:
             self.sock = None
+        forwardagent_from_ssh_config = user_ssh_config.get(
+            "forwardagent", "yes"
+        )
+        forwardagent_possible_values = ("no", "yes")
+        if forwardagent_from_ssh_config not in forwardagent_possible_values:
+            raise ValueError(
+                "Invalid value '{}' for forwardagent, "
+                "expected one of: {}".format(
+                    forwardagent_from_ssh_config, forwardagent_possible_values
+                )
+            )
+        self.allow_agent = forwardagent_from_ssh_config == "yes"
 
     @staticmethod
     def ssh_config_filename():
@@ -142,6 +154,7 @@ class SSHTree(BaseTree):
             password=self.password,
             gss_auth=self.gss_auth,
             sock=self.sock,
+            allow_agent=self.allow_agent,
         )
 
     @contextmanager
